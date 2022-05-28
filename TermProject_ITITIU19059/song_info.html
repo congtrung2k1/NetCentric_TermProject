@@ -1,15 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Song Information</title>
-</head>
-<body>
-    <h2>Image</h2>  
-    <center><img width="1500px" height=auto src="background.jpg"></center>
-    <h2>Video</h2>
-    <center><video width="1000px" height="500px" src="MI_MEDICINA.mp4" type="video/mp4" controls autoplay></video></center>
-    <h2>Audio</h2>
-    <center><audio width="500px" height="500px" src="MI_MEDICINA" type="audio/mp3" controls></audio></center>
-</body>
+  
+	<head>
+		<meta charset="utf-8">
+		<title>Mini Music Player</title>
+		<script src = "https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    </head>
+
+    <body>
+		<ul></ul>
+    	<script type="text/javascript">
+	    	let mID = "%b";
+			$.getJSON( "music_info.json", function(obj) {
+				$.each(obj, function(key, value) {
+			    	if (mID == value.encodeId) {
+			    		
+			    		if (value.title != undefined) {
+			    			$("ul").append('<p style="color:blue;font-size:20px">Bai hat: ' + value.title + '</p>');
+			    		}
+			    		if (value.artistsNames != undefined) {
+			    			$("ul").append('<p style="color:blue;font-size:20px">Ca si: ' + value.artistsNames + '</p>');
+			    		}
+			    		if (Object(value.artists[0]).thumbnailM != undefined) {
+			    			$("ul").append('<center><img src="' + Object(value.artists[0]).thumbnailM + '"></center>');
+			    		}
+			    		else
+			    			if (Object(value.artists[0]).thumbnail != undefined) {
+				    			$("ul").append('<center><img src="' + Object(value.artists[0]).thumbnail + '"></center>');
+				    		}
+				    	if (value.thumbnailM != undefined) {
+			    			$("ul").append('<p style="color:blue;font-size:20px">Song cover: <center><img src="' + value.thumbnailM + '"></center></p>');
+			    		}
+			    		else
+				    		if (value.thumbnail != undefined) {
+				    			$("ul").append('<p style="color:blue;font-size:20px">Song cover: <center><img src="' + value.thumbnail + '"></center></p>');
+				    		}
+			    		if (value.album != undefined) {
+			    			$("ul").append('<p style="color:blue;font-size:20px">Album: ' + Object(value.album).title + '</p>');
+			    		}
+			    		if (value.genres != undefined) {
+			    			let tmp = 'The loai: ';
+			    			$.each(Object(value.genres), function(k,v) {
+			    				tmp += v.title + ', ';
+			    			})
+			    			$("ul").append('<p style="color:blue;font-size:20px">' + tmp + '</p>');
+			    		}
+			    		if (value.lyric != undefined) {
+			    			$("ul").append('<p style="color:blue;font-size:20px">Lyric: YES!</p>');
+			    		}
+			    		else $("ul").append('<p style="color:blue;font-size:20px">Lyric: NO!</p>');
+			    		if (value.streams != undefined) {
+			    			let stream = Object(value.streams);
+				            for (const item in stream) {
+				                let bbc = Object.keys(stream[item]);
+				                if (stream[item][bbc] != "VIP") {
+					    			$("ul").append('<center>' + bbc + 'kb<br><a href="/song.html?id=' + mID + '_' + bbc + '"><img src="logo.png"></a></center>');
+			    		    	};
+			    		    };
+			    		};
+
+			    		return false;
+			        };
+			    });
+			});
+		</script>
+    </body>
+
 </html>
+
+
+
+

@@ -3,6 +3,7 @@ import socket
 import selectors
 import types
 import threading
+import urllib.parse
 
 def process(client, caddr):
     while True:
@@ -17,18 +18,53 @@ def process(client, caddr):
         print(f"[*] Request from user: {request}")
 
         if req_method == b'GET':
+            flag = 0
+            param = ''
+
             if req_url == b"":
-                url = 'index.html'
+                url = 'music.html'
                 ctype = "text/html"
+            elif b"song.html" in req_url:
+                url = 'song.html'
+                ctype = "text/html"
+                flag = 2
+                param = req_url.split(b'?id=')[1]
+                param = param.split(b'_')
+            elif b"song_info.html" in req_url:
+                url = 'song_info.html'
+                ctype = "text/html"
+                flag = 1
+                param = req_url.split(b'?id=')[1]
+
             elif req_url == b"favicon.ico": 
                 url = req_url
                 ctype = "image/x-icon"
+
+            elif req_url == b"music_info.json":
+                url = "music_info.json"
+                ctype = "text/json"
+            elif req_url == b"listAllMusic.js":
+                url = "listAllMusic.js"
+                ctype = "text/javascript"
             else:
                 url = req_url
                 ctype = "text/html"
 
-            with open(url, 'rb') as f:
-                data = f.read()
+            if flag == 1:
+                #print(param)
+                with open(url, 'rb') as f:
+                    data = f.read()
+                    data = data % param
+            elif flag == 2:
+                #print(param)
+                with open(url, 'rb') as f:
+                    data = f.read()
+                    data = data % tuple(param)
+            else:
+                url = urllib.parse.unquote(url)
+                #print(url)
+                with open(url, 'rb') as f:
+                    data = f.read()
             
             header  = "HTTP/1.1 200\r\n"
             header += f"Content-length: {len(data)}\r\n"

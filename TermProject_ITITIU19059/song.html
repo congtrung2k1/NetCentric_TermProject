@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+  <head>
+    <meta charset="utf-8">
+    <title>Mini Music Player</title>
+    <script src = "https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    </head>
+
+    <body>
+    <ul></ul>
+      <script type="text/javascript">
+        let mID = "%b";
+        let sKB = "%b";
+        $.getJSON( "music_info.json", function(obj) {
+            $.each(obj, function(key, value) {
+                if (mID == value.encodeId) {
+                  
+                    if (value.title != undefined) {
+                        $("ul").append('<center><p style="font-size:20px">Bai hat: ' + value.title + '</p></center>');
+                    }
+                    if (value.artistsNames != undefined) {
+                        $("ul").append('<center><p style="font-size:20px">Ca si: ' + value.artistsNames + '</p></center>');
+                    }
+                    if (value.thumbnailM != undefined) {
+                        $("ul").append('<center><img src="' + value.thumbnailM + '"></center>');
+                    }
+                    else
+                        if (value.thumbnail != undefined) {
+                            $("ul").append('<center><img src="' + value.thumbnail + '"></center>');
+                        }
+
+                    $("ul").append('<center><audio width="500px" height="500px" src="DOWNLOAD/' + value.title + '_' + sKB + '" type="audio/mp3" controls></audio></center>');
+
+                    if (value.lyric != undefined) {
+                        $("ul").append('<center><p style="font-size:20px">' + value.lyric.replace(/\n/g,'<br>') + '</p></center>');
+                    }
+                    else $("ul").append('<center><p style="font-size:20px">Lyric: Missing! Do you have it?</p></center>');
+
+                    return false;
+                };
+            });
+        });
+    </script>
+    </body>
+
+</html>
