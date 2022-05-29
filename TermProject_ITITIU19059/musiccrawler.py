@@ -74,7 +74,7 @@ def getTopList(name_api:str = '/api/v2/page/get/newrelease-chart', param:dict = 
 
         res = []
         for items in data:
-            res.append([items["encodeId"], items["link"]])
+            res.append(items["encodeId"])
     return res
 
 def getStreamInfo(target_id: str) -> dict:
@@ -106,25 +106,33 @@ def downloadLyric(target_id: str) -> str:
         
         data = re.findall(r'{\"sentences\"\s*:\s*\[.*\]}\]', response.content.decode('utf-8'))
         if data == []:
-            data = re.findall(r'{\"lyric\"\s*:\s*\".*?\"', response.content.decode('utf-8'))
+            data = re.findall(r'{\"lyric\"\s*:\s*\".*?\",', response.content.decode('utf-8'))
             if data == []:
                 data = re.findall(r'{\"file\"\s*:\s*\".*?\",', response.content.decode('utf-8'))
                 data = data[0].split("file\":\"")[1][:-2]
                 os.system(f"curl -s \"{data}\" -o temp")
                 with open('temp','r',encoding='utf-8') as f:
                     data = f.read()
-                    data = (data.split("length: ")[1]).split('\n')[1:-1]
+                    data = data.split('\n')
                     for i in range(len(data)):
-                        data[i] = data[i].split(']')[1] if data[i].split(']') != [] else ''
+                        if '][' in data[i]:
+                            data[i] = data[i].split(']')
+                            if data[i] != ['']:
+                                for j in data[i]: 
+                                    if j == '' or j[0] != '[': tmp = j; break
+                                data[i] = tmp
+                            else:
+                                data[i] = ''
+                        else:
+                            data[i] = data[i].split(']')[1] if data[i].split(']') != [''] else ''
+                    data = list(filter(None,data))
                 os.system(f"rm temp")
                 lyric = '\n'.join(data)
             else:
-                data = json.loads(data[0] + '}')
-                #print(data)
+                data = json.loads(data[0][:-1] + '}')
                 lyric = data["lyric"]
         else:
             data = json.loads(data[0].split("{\"sentences\":")[1])
-            #print(data)
             for x in data: 
                 lyric += ' '.join([i["data"] for i in x["words"]]) + '\n'
     return lyric
@@ -144,14 +152,7 @@ def downloadMedia(link, title, quality) -> None:
     link = link.replace('https://', "https://vnno-vn-5-tf-")
     os.system(f"curl -s \"{link}\" -o \"{DirDownload}/{filename}\"")
 
-def getMediaFile(url: str) -> None:
-    obj = re.search(r'/.*?/(?P<slug>.*?)\/(?P<id>.*?)\W', url)
-    if not obj:
-        print('\n[*] Error : not existed!')
-        return
-    obj___id = obj.group('id')
-    obj_slug = obj.group('slug')
-    
+def getMediaFile(obj___id: str) -> None:
     with eventlet.Timeout(10):
         url = urlGeneration('/api/v2/page/get/song', {'ctime':_time,'id':obj___id,'version':'1.6.25'})
         response = requests.get(url,headers=HEADERS)
@@ -193,20 +194,21 @@ def getMediaFile(url: str) -> None:
 def main() -> None:
     # Default, 100 new songs
     listOfSong = getTopList()
-    print(f"[*] Number of song: {len(listOfSong)}\n{listOfSong}")
     # Custom, get 100 songs of one playlist
     #listOfSong = getTopList('/api/v2/page/get/playlist', {"id":"ZWZB96A9"})
+    #listOfSong = getTopList('/api/v2/page/get/playlist', {"id":"ZWZB96AO"})
+    print(f"[*] Number of song: {len(listOfSong)}\n{listOfSong}")
     
     for x in listOfSong: 
         flag = 0
         for i in json_local:
-            if x[0] == i["encodeId"]:
+            if x == i["encodeId"]:
                 flag = 1
                 break
         if flag:
             continue
 
-        getMediaFile(x[1])
+        getMediaFile(x)
         #print(json_local)
         #input()
     with open("music_info.json",'w',encoding='utf-8') as f:
